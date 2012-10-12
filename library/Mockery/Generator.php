@@ -22,6 +22,7 @@ namespace Mockery;
 
 class Generator
 {
+
     protected static $reservedWords = array(
         "__halt_compiler", "abstract", "and", "array", "as",
         "break", "callable", "case", "catch", "class",
@@ -49,11 +50,10 @@ class Generator
     * @param string $allowFinal
     * @return string Classname of the mock class created
     */
-    public static function createClassMock($className, $mockName = null,
+    public static function createClassMockCode($className, $mockName,
         $allowFinal = false, $block = array(), $makeInstanceMock = false,
         $partialMethods = array())
     {
-        if (is_null($mockName)) $mockName = uniqid('Mockery_');
         $definition = '';
         $inheritance = '';
         $interfaceInheritance = array();
@@ -102,6 +102,29 @@ class Generator
         }
         if ($useStandardMethods) $definition .= self::_getStandardMethods($callTypehinting, $makeInstanceMock);
         $definition .= PHP_EOL . '}';
+
+        return $definition;
+    }
+
+   /**
+    * Generates a Mock Object class with all Mockery methods whose
+    * intent is basically to provide the mock object with the same
+    * class type hierarchy as a typical instance of the class being
+    * mocked.
+    *
+    * @param string $className
+    * @param string $mockName
+    * @param string $allowFinal
+    * @return string Classname of the mock class created
+    */
+    public static function createClassMock($className, $mockName = null,
+        $allowFinal = false, $block = array(), $makeInstanceMock = false,
+        $partialMethods = array())
+    {
+        if (is_null($mockName)) $mockName = uniqid('Mockery_');
+
+        $definition = static::createClassMockCode($className, $mockName, $allowFinal, $block, $makeInstanceMock, $partialMethods);
+
         eval($definition);
         return $mockName;
     }
