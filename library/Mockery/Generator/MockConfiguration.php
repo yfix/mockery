@@ -224,6 +224,27 @@ class MockConfiguration
         return $this->name = uniqid('Mockery_');
     }
 
+    /**
+     * We occasionally use this for exceptions, so people aren't puzzle by 
+     * Mockery_zfsdfgjhsdngf 
+     */
+    public function getDisplayName()
+    {
+        if ($this->getTargetObject()) {
+            return get_class($this->getTargetObject());
+        }
+
+        if ($this->getTargetClass()) {
+            return $this->getTargetClass();
+        }
+
+        if ($this->getTargetInterfaces()) {
+            return implode(",", $this->getTargetInterfaces());
+        }
+
+        return $this->getName();
+    }
+
     public function getShortName()
     {
         $parts = explode("\\", $this->getName());

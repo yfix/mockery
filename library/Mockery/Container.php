@@ -179,7 +179,7 @@ class Container
         $generator->generate($config);
 
         $mock = $this->_getInstance($config->getName(), $constructorArgs);
-        $mock->mockery_init($config->getName(), $this, $config->getTargetObject());
+        $mock->mockery_init($config->getDisplayName(), $this, $config->getTargetObject());
 
         if (!empty($quickdefs)) {
             $mock->shouldReceive($quickdefs);
