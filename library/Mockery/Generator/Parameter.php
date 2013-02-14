@@ -47,8 +47,12 @@ class Parameter
         $builder->setTypeHint($this->getTypeHint());
 
         // todo the rest
-        if ($this->reflectionParameter->isDefaultValueAvailable()) {
-            $builder->setDefault($this->reflectionParameter->getDefaultValue());
+        if ($this->reflectionParameter->isOptional()) {
+            if ($this->reflectionParameter->isDefaultValueAvailable()) {
+                $builder->setDefault($this->reflectionParameter->getDefaultValue());
+            } else {
+                $builder->setDefault(null);
+            }
         }
     
         if ($this->reflectionParameter->isPassedByReference()) {
