@@ -90,9 +90,9 @@ class MockConfiguration
          * Whitelist trumps blacklist
          */
         if (count($this->getWhiteListedMethods())) {
-            $whitelist = $this->getWhiteListedMethods();
+            $whitelist = array_map('strtolower', $this->getWhiteListedMethods());
             $methods = array_filter($methods, function($method) use ($whitelist) {
-                return in_array($method->getName(), $whitelist);
+                return in_array(strtolower($method->getName()), $whitelist);
             });
 
             return $methods;
@@ -102,9 +102,9 @@ class MockConfiguration
          * Remove blacklisted methods
          */
         if (count($this->getBlackListedMethods())) {
-            $blacklist = $this->getBlackListedMethods();
+            $blacklist = array_map('strtolower', $this->getBlackListedMethods());
             $methods = array_filter($methods, function ($method) use ($blacklist) {
-                return !in_array($method->getName(), $blacklist);
+                return !in_array(strtolower($method->getName()), $blacklist);
             });
         }
 
