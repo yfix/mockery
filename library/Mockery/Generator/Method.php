@@ -47,6 +47,10 @@ class Method
             $builder->makeStatic();
         }
 
+        if ($this->returnsReference()) {
+            $builder->makeReturnByRef();
+        }
+
         return $builder;
     }
 }
