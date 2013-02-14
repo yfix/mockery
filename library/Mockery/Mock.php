@@ -115,6 +115,8 @@ class Mock implements MockInterface
      */
     protected $_mockery_disableExpectationMatching = false;
     
+    protected $_mockery_mockableMethods = array();
+
     /**
      * Stores all stubbed public methods separate from any on-object public
      * properties that may exist.
@@ -141,6 +143,17 @@ class Mock implements MockInterface
         $this->_mockery_container = $container;
         if (!is_null($partialObject)) {
             $this->_mockery_partial = $partialObject;
+        }
+        if (!\Mockery::getConfiguration()->mockingNonExistentMethodsAllowed()) {
+            if (isset($this->_mockery_partial)) {
+                $reflected = new \ReflectionObject($this->_mockery_partial);
+            } else {
+                $reflected = new \ReflectionClass($this->_mockery_name);
+            }
+            $methods = $reflected->getMethods(\ReflectionMethod::IS_PUBLIC);
+            foreach ($methods as $method) {
+                if (!$method->isStatic()) $this->_mockery_mockableMethods[] = $method->getName();
+            }
         }
     }
     
@@ -464,6 +477,18 @@ class Mock implements MockInterface
         return $this->_mockery_mockableProperties;
     }
 
+    public function mockery_getMockableMethods()
+    {
+        return $this->_mockery_mockableMethods;
+    }
+
+    public function mockery_isAnonymousMock()
+    {
+        $rfc = new \ReflectionClass($this);
+
+        // only implements MockInterface and has no parent
+        return (count($rfc->getInterfaces()) == 1) && !$rfc->getParentClass();
+    }
 
     public function __wakeup()
     {
