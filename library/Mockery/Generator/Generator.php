@@ -17,8 +17,8 @@ class Generator
         $addBaseMockDefinition->execute($config, $mock);
 
         if ($config->isInstanceMock()) {
-            $addInstanceMockDefinition = new Pass\AddInstanceMockDefinitionPass;
-            $addInstanceMockDefinition->execute($config, $mock);
+            $addInstanceMockConstructor = new Pass\AddInstanceMockConstructorPass;
+            $addInstanceMockConstructor->execute($config, $mock);
         }
 
         $addTargetMockMethods = new Pass\AddTargetMockMethodsPass;
