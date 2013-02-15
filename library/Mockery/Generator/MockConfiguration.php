@@ -376,6 +376,25 @@ class MockConfiguration
             return new Method($method);
         }, $methods);
 
+        $prototypes = array();
+        $methods = array_filter($methods, function ($method) use (&$prototypes) {
+
+            try {
+                $prototype = $method->getPrototype();  
+                $name = $prototype->getDeclaringClass() . "::" . $prototype->getName();
+
+                if (in_array($name, $prototypes)) {
+                    return false;
+                }
+
+                $prototypes[] = $name;
+            } catch (\ReflectionException $re) {
+                $prototypes[] = $method->getDeclaringClass() . "::" . $method->getName();
+            }
+
+            return true;
+        });
+
         return $methods;
     }
 

@@ -855,6 +855,13 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $m->get();
         \Mockery::close();
     }
+
+    /** @test */
+    public function shouldNotDuplicateDoublyInheritedMethods()
+    {
+        $mock = $this->container->mock(array('Mockery_Evenement_EventEmitter', 'Mockery_Chatroulette_ConnectionInterface'));
+        $this->assertInstanceOf("Mockery\MockInterface", $mock);
+    }
 }
 
 interface MockeryTest_InterfaceWithTraversable extends \ArrayAccess, \Traversable, \Countable {
@@ -1060,4 +1067,37 @@ class MockeryTest_ImplementsIterator implements \Iterator {
     public function key(){}
     public function next(){}
     public function valid(){}
+}
+
+interface Mockery_Evenement_EventEmitterInterface
+{
+    public function on($name, $callback);
+}
+
+class Mockery_Evenement_EventEmitter implements Mockery_Evenement_EventEmitterInterface
+{
+    public function on($name, $callback)
+    {
+    }
+}
+
+interface Mockery_React_StreamInterface extends Mockery_Evenement_EventEmitterInterface
+{
+    public function close();
+}
+
+interface Mockery_React_ReadableStreamInterface extends Mockery_React_StreamInterface
+{
+    public function pause();
+}
+
+interface Mockery_React_WritableStreamInterface extends Mockery_React_StreamInterface
+{
+    public function write($data);
+}
+
+interface Mockery_Chatroulette_ConnectionInterface
+    extends Mockery_React_ReadableStreamInterface,
+            Mockery_React_WritableStreamInterface
+{
 }
