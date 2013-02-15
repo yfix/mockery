@@ -4,7 +4,13 @@ namespace Mockery\Generator;
 
 class Generator 
 {
-    public function generate(MockConfiguration $config)
+    /**
+     * Use PHPParser to build a mock based on $config
+     *
+     * @param MockConfiguration $config
+     * @return \PHPParser_Node_Stmt
+     */
+    public function build(MockConfiguration $config)
     {
         $factory = new \PHPParser_BuilderFactory;
         
@@ -24,19 +30,37 @@ class Generator
         $addTargetMockMethods = new Pass\AddTargetMockMethodsPass;
         $addTargetMockMethods->execute($config, $mock);
 
-        $prettyPrinter = new \PHPParser_PrettyPrinter_Default;
-
         $mock = $mock->getNode();
 
         if ($config->getNamespaceName()) {
             $mock = new \PHPParser_Node_Stmt_Namespace(new \PHPParser_Node_Name($config->getNamespaceName()), array($mock));
         }
 
-        /* echo "\n============================================================\n"; */
-        /* echo($prettyPrinter->prettyPrint(array($mock))); */
-        /* echo "\n============================================================\n"; */
-        file_put_contents("/tmp/last_mock.php", "<?php " . $prettyPrinter->prettyPrint(array($mock)));
-        eval($prettyPrinter->prettyPrint(array($mock)));
+        return $mock;
+    }
+
+    /**
+     * Generate PHP for a mock based on $config
+     *
+     * @param MockConfiguration $config
+     * @return string
+     */
+    public function generate(MockConfiguration $config)
+    {
+        $mock = $this->build($config);
+        $prettyPrinter = new \PHPParser_PrettyPrinter_Default;
+        return $prettyPrinter->prettyPrint(array($mock));
+    }
+
+    /**
+     * Declare a class based on $config
+     *
+     * @param MockConfiguration $config
+     */
+    public function define(MockConfiguration $config)
+    {
+        $definition = $this->generate($config);
+        eval($definition);
     }
 
 }

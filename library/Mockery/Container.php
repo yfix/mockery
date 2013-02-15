@@ -176,7 +176,7 @@ class Container
         }
 
         $generator = new Generator\Generator;
-        $generator->generate($config);
+        $generator->define($config);
 
         $mock = $this->_getInstance($config->getName(), $constructorArgs);
         $mock->mockery_init($config->getDisplayName(), $this, $config->getTargetObject());
