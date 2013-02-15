@@ -4,7 +4,7 @@ namespace Mockery\Generator\Pass;
 
 use Mockery\Generator\MockConfiguration;
 
-class AddTargetMockMethods 
+class AddTargetMockMethodsPass
 {
     public function __construct(\PHPParser_Template $template = null, \PHPParser_BuilderFactory $factory = null)
     {

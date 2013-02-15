@@ -1,6 +1,6 @@
 <?php
 
-namespace Mockery\Generator\Visitor;
+namespace Mockery\Generator\Pass\Visitor;
 
 class InstanceMockIgnoreVerificationVisitor extends \PHPParser_NodeVisitorAbstract
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace Mockery\Generator\Visitor;
+namespace Mockery\Generator\Pass\Visitor;
 
 class RemoveMagicCallStaticTypeHintVisitor extends \PHPParser_NodeVisitorAbstract
 {

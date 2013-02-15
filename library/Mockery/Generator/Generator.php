@@ -10,18 +10,18 @@ class Generator
         
         $mock = $factory->class($config->getShortName());
 
-        $addClassDefinition = new Pass\AddClassDefinition;
+        $addClassDefinition = new Pass\AddClassDefinitionPass;
         $addClassDefinition->execute($config, $mock);
 
-        $addBaseMockDefinition = new Pass\AddBaseMockDefinition;
+        $addBaseMockDefinition = new Pass\AddBaseMockDefinitionPass;
         $addBaseMockDefinition->execute($config, $mock);
 
         if ($config->isInstanceMock()) {
-            $addInstanceMockDefinition = new Pass\AddInstanceMockDefinition;
+            $addInstanceMockDefinition = new Pass\AddInstanceMockDefinitionPass;
             $addInstanceMockDefinition->execute($config, $mock);
         }
 
-        $addTargetMockMethods = new Pass\AddTargetMockMethods;
+        $addTargetMockMethods = new Pass\AddTargetMockMethodsPass;
         $addTargetMockMethods->execute($config, $mock);
 
         $prettyPrinter = new \PHPParser_PrettyPrinter_Default;

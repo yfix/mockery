@@ -10,7 +10,7 @@ use Mockery\Generator\MockConfiguration;
  *
  * It will also declare any classes/interfaces that are missing
  */
-class AddClassDefinition 
+class AddClassDefinitionPass
 {
     public function execute(MockConfiguration $config, \PHPParser_Builder_Class $mock)
     {

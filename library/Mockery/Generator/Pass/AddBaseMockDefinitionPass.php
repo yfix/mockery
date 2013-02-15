@@ -4,7 +4,7 @@ namespace Mockery\Generator\Pass;
 
 use Mockery\Generator\MockConfiguration;
 
-class AddBaseMockDefinition 
+class AddBaseMockDefinitionPass
 {
     public function __construct(\PHPParser_NodeTraverser $traverser = null, \PHPParser_Parser $parser = null, $path = null)
     {
@@ -22,24 +22,26 @@ class AddBaseMockDefinition
         $this->traverser->addVisitor(new \PHPParser_NodeVisitor_NameResolver());
 
         if ($config->requiresCallTypeHintRemoval()) {
-            $visitor = new \Mockery\Generator\Visitor\RemoveMagicCallTypeHintVisitor;
+            $visitor = new Visitor\RemoveMagicCallTypeHintVisitor;
             $this->traverser->addVisitor($visitor);
         }
 
         if ($config->requiresCallStaticTypeHintRemoval()) {
-            $visitor = new \Mockery\Generator\Visitor\RemoveMagicCallStaticTypeHintVisitor;
+            $visitor = new Visitor\RemoveMagicCallStaticTypeHintVisitor;
             $this->traverser->addVisitor($visitor);
         }
 
         if ($config->isInstanceMock()) {
-            $propertyVisitor = new \Mockery\Generator\Visitor\InstanceMockIgnoreVerificationVisitor($mock);
+            $propertyVisitor = new Visitor\InstanceMockIgnoreVerificationVisitor($mock);
             $this->traverser->addVisitor($propertyVisitor);
         }
 
-        $stmtInjector = new \Mockery\Generator\Visitor\MockStmtInjectorVisitor($mock);
+        $stmtInjector = new Visitor\MockStmtInjectorVisitor($mock);
         $this->traverser->addVisitor($stmtInjector);
-        $interfaceInjector = new \Mockery\Generator\Visitor\MockInterfaceInjectorVisitor($mock);
+
+        $interfaceInjector = new Visitor\MockInterfaceInjectorVisitor($mock);
         $this->traverser->addVisitor($interfaceInjector);
+
         $base = $this->parser->parse(file_get_contents($this->path));
         $this->traverser->traverse($base);
     }

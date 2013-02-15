@@ -4,7 +4,7 @@ namespace Mockery\Generator\Pass;
 
 use Mockery\Generator\MockConfiguration;
 
-class AddInstanceMockDefinition
+class AddInstanceMockDefinitionPass
 {
     public function __construct(\PHPParser_Template $template = null, \PHPParser_BuilderFactory $factory = null) 
     {
