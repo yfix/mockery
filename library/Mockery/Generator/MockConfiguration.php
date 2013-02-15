@@ -341,6 +341,18 @@ class MockConfiguration
     }
     protected function setTargetClass($targetClass)
     {
+        if (class_exists($targetClass) && !$this->getTargetObject()) {
+            $rfc = new \ReflectionClass($targetClass);
+            if ($rfc->isFinal()) {
+                throw new \Mockery\Exception(
+                    'The class ' . $targetClass . ' is marked final and its methods'
+                    . ' cannot be replaced. Classes marked final can be passed in'
+                    . ' to \Mockery::mock() as instantiated objects to create a'
+                    . ' partial mock, but only if the mock is not subject to type'
+                    . ' hinting checks.'
+                );
+            }
+        }
         $this->targetClass = $targetClass;
         return $this;
     } 
