@@ -6,7 +6,7 @@ use Mockery\Generator\MockConfiguration;
 
 class AddInstanceMockDefinition
 {
-    public function __construct(\PHPParser_Template $template = null, \PHPParser_BuilderFactory $factory = null)
+    public function __construct(\PHPParser_Template $template = null, \PHPParser_BuilderFactory $factory = null) 
     {
         $this->template = $template;
         $this->factory = $factory ?: new \PHPParser_BuilderFactory;
@@ -16,10 +16,6 @@ class AddInstanceMockDefinition
     {
         $stmts = $this->getTemplate()->getStmts(array());
         $method = $this->factory->method('__construct')->addStmts($stmts);
-
-        $property = $this->factory->property('_mockery_ignoreVerification')->makeProtected()->setDefault(true);
-
-        $mock->addStmt($property);
         $mock->addStmt($method);
     }
 

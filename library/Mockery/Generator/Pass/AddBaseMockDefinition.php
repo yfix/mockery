@@ -31,6 +31,11 @@ class AddBaseMockDefinition
             $this->traverser->addVisitor($visitor);
         }
 
+        if ($config->isInstanceMock()) {
+            $propertyVisitor = new \Mockery\Generator\Visitor\InstanceMockIgnoreVerificationVisitor($mock);
+            $this->traverser->addVisitor($propertyVisitor);
+        }
+
         $stmtInjector = new \Mockery\Generator\Visitor\MockStmtInjectorVisitor($mock);
         $this->traverser->addVisitor($stmtInjector);
         $interfaceInjector = new \Mockery\Generator\Visitor\MockInterfaceInjectorVisitor($mock);

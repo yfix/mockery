@@ -124,7 +124,13 @@ class Mock implements MockInterface
      * @var array
      */
     protected $_mockery_mockableProperties = array();
-    
+
+    /**
+     * Use for instance mocks only, allows us to ignore verification on the 
+     * originally created mock
+     */
+    protected $_mockery_ignoreVerification  = false;
+
     /**
      * We want to avoid constructors since class is copied to Generator.php
      * for inclusion on extending class definitions.
@@ -308,7 +314,14 @@ class Mock implements MockInterface
      */
     public function mockery_verify()
     {
-        if ($this->_mockery_verified) return true;
+        if ($this->_mockery_verified) {
+            return true;
+        }
+
+        if ($this->_mockery_ignoreVerification == true) {
+            return true;
+        }
+
         $this->_mockery_verified = true;
         foreach($this->_mockery_expectations as $director) {
             $director->verify();
@@ -388,6 +401,10 @@ class Mock implements MockInterface
      */
     public function mockery_validateOrder($method, $order)
     {
+        if ($this->_mockery_ignoreVerification === true) {
+            return;
+        }
+
         if ($order < $this->_mockery_currentOrder) {
             throw new \Mockery\Exception(
                 'Method ' . $this->_mockery_name . '::' . $method . '()'
