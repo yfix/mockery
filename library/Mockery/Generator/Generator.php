@@ -2,7 +2,7 @@
 
 namespace Mockery\Generator;
 
-class Generator 
+class Generator implements GeneratorInterface
 {
     /**
      * Use PHPParser to build a mock based on $config

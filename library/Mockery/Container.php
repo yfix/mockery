@@ -51,6 +51,16 @@ class Container
      * @var array
      */
     protected $_groups = array();
+
+    /**
+     * Generator
+     */
+    protected $_generator;
+
+    public function __construct(Generator\GeneratorInterface $generator = null)
+    {
+        $this->_generator = $generator ?: new Generator\Generator;
+    }
     
     /**
      * Generates a new mock object for this container
@@ -175,8 +185,9 @@ class Container
             $config->addBlackListedMethod("__construct"); // we need to pass through
         }
 
-        $generator = new Generator\Generator;
-        $generator->define($config);
+        $hash = $config->getHash();
+
+        $this->_generator->define($config);
 
         $mock = $this->_getInstance($config->getName(), $constructorArgs);
         $mock->mockery_init($config->getDisplayName(), $this, $config->getTargetObject());

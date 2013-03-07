@@ -37,14 +37,25 @@ class Mockery
     protected static $_config = null;
 
     /**
+     * Global generator
+     *
+     * @var \Mockery\Generator\GeneratorInterface
+     */
+    protected static $_generator = null;
+
+    /**
      * Static shortcut to \Mockery\Container::mock()
      *
      * @return \Mockery\MockInterface
      */
     public static function mock()
     {
+        if (is_null(self::$_generator)) {
+            self::$_generator = new \Mockery\Generator\CachingGenerator(new \Mockery\Generator\Generator);
+        }
+
         if (is_null(self::$_container)) {
-            self::$_container = new \Mockery\Container;
+            self::$_container = new \Mockery\Container(self::$_generator);
         }
         $args = func_get_args();
         return call_user_func_array(array(self::$_container, 'mock'), $args);

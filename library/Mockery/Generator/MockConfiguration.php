@@ -72,6 +72,18 @@ class MockConfiguration
     protected $instanceMock = false;
 
     /**
+     * Attempt to create a hash of the configuration, in order to allow caching
+     *
+     * @TODO workout if this will work
+     *
+     * @return string
+     */
+    public function getHash()
+    {
+        return md5(serialize(get_object_vars($this)));
+    }
+
+    /**
      * Gets a list of methods from the classes, interfaces and objects and 
      * filters them appropriately. Lot's of filtering going on, perhaps we could 
      * have filter classes to iterate through
