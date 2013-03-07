@@ -6,6 +6,8 @@ use Mockery\Generator\MockConfiguration;
 
 class AddBaseMockDefinitionPass
 {
+    protected static $cache;
+
     public function __construct(\PHPParser_NodeTraverser $traverser = null, \PHPParser_Parser $parser = null, $path = null)
     {
         $this->traverser = $traverser ?: new \PHPParser_NodeTraverser;
@@ -42,7 +44,11 @@ class AddBaseMockDefinitionPass
         $interfaceInjector = new Visitor\MockInterfaceInjectorVisitor($mock);
         $this->traverser->addVisitor($interfaceInjector);
 
-        $base = $this->parser->parse(file_get_contents($this->path));
-        $this->traverser->traverse($base);
+        if (!isset(static::$cache[$this->path])) {
+            $base = $this->parser->parse(file_get_contents($this->path));
+            static::$cache[$this->path] = $base;
+        }
+
+        $this->traverser->traverse(static::$cache[$this->path]);
     }
 }
