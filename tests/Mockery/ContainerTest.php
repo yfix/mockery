@@ -859,8 +859,9 @@ class ContainerTest extends PHPUnit_Framework_TestCase
     /** @test */
     public function shouldNotDuplicateDoublyInheritedMethods()
     {
-        $mock = $this->container->mock(array('Mockery_Evenement_EventEmitter', 'Mockery_Chatroulette_ConnectionInterface'));
+        $mock = $this->container->mock('Mockery_Evenement_EventEmitter,Mockery_Chatroulette_ConnectionInterface');
         $this->assertInstanceOf("Mockery\MockInterface", $mock);
+        $this->assertInstanceOf("Mockery_Evenement_EventEmitter", $mock);
     }
 }
 
