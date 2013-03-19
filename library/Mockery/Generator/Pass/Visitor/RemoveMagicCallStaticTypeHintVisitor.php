@@ -2,13 +2,23 @@
 
 namespace Mockery\Generator\Pass\Visitor;
 
-class RemoveMagicCallStaticTypeHintVisitor extends \PHPParser_NodeVisitorAbstract
+use Mockery\Generator\PHPParser\ConditionalNodeVisitor;
+
+class RemoveMagicCallStaticTypeHintVisitor extends \PHPParser_NodeVisitorAbstract implements ConditionalNodeVisitor
 {
-    public function leaveNode(\PHPParser_Node $node) {
+    protected $finished = false;
+
+    public function enterNode(\PHPParser_Node $node) {
         if ($node instanceof \PHPParser_Node_Stmt_ClassMethod && $node->name == "__callStatic") {
             $params = $node->params;
             $params[1]->type = null;
+            $this->finished = true;
         }
 
+    }
+
+    public function isFinished()
+    {
+        return $this->finished;
     }
 }

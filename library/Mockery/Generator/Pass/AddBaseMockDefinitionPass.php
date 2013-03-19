@@ -3,6 +3,7 @@
 namespace Mockery\Generator\Pass;
 
 use Mockery\Generator\MockConfiguration;
+use Mockery\Generator\PHPParser\ConditionalNodeTraverser;
 
 class AddBaseMockDefinitionPass
 {
@@ -10,7 +11,7 @@ class AddBaseMockDefinitionPass
 
     public function __construct(\PHPParser_NodeTraverser $traverser = null, \PHPParser_Parser $parser = null, $path = null)
     {
-        $this->traverser = $traverser ?: new \PHPParser_NodeTraverser;
+        $this->traverser = $traverser ?: new ConditionalNodeTraverser;
         $this->path = $path ?: __DIR__.'/../../Mock.php';
         $this->parser = $parser ?: new \PHPParser_Parser(new \PHPParser_Lexer);
     }
@@ -25,30 +26,37 @@ class AddBaseMockDefinitionPass
 
         if ($config->requiresCallTypeHintRemoval()) {
             $visitor = new Visitor\RemoveMagicCallTypeHintVisitor;
-            $this->traverser->addVisitor($visitor);
+            $this->traverser->addConditionalVisitor($visitor);
         }
 
         if ($config->requiresCallStaticTypeHintRemoval()) {
             $visitor = new Visitor\RemoveMagicCallStaticTypeHintVisitor;
-            $this->traverser->addVisitor($visitor);
+            $this->traverser->addConditionalVisitor($visitor);
         }
 
         if ($config->isInstanceMock()) {
-            $propertyVisitor = new Visitor\InstanceMockIgnoreVerificationVisitor($mock);
-            $this->traverser->addVisitor($propertyVisitor);
+            $propertyVisitor = new Visitor\InstanceMockIgnoreVerificationVisitor();
+            $this->traverser->addConditionalVisitor($propertyVisitor);
         }
 
-        $stmtInjector = new Visitor\MockStmtInjectorVisitor($mock);
-        $this->traverser->addVisitor($stmtInjector);
 
         $interfaceInjector = new Visitor\MockInterfaceInjectorVisitor($mock);
-        $this->traverser->addVisitor($interfaceInjector);
+        $this->traverser->addConditionalVisitor($interfaceInjector);
 
         if (!isset(static::$cache[$this->path])) {
             $base = $this->parser->parse(file_get_contents($this->path));
             static::$cache[$this->path] = $base;
         }
 
-        $this->traverser->traverse(static::$cache[$this->path]);
+        $nodes = $this->traverser->traverse(static::$cache[$this->path]);
+
+        /**
+         * Now we've mangled the nodes, this traverser will copy the statements 
+         * to our new mock
+         */
+        $traverser = new ConditionalNodeTraverser;
+        $stmtInjector = new Visitor\MockStmtInjectorVisitor($mock);
+        $traverser->addConditionalVisitor($stmtInjector);
+        $traverser->traverse($nodes);
     }
 }
