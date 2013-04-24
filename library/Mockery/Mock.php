@@ -143,7 +143,34 @@ class Mock implements MockInterface
             $this->_mockery_partial = $partialObject;
         }
     }
-    
+
+    /**
+     * Setup stubs on this mock
+     *
+     * This is really just a proxy to shouldReceive, offering slightly 
+     * different syntax, closer to that offered by rspec-mocks. It's also 
+     * slightly more simple, in that you can't define multiple stubs at once.
+     *
+     * If $return is a Closure, it's output will be returned by the stub
+     *
+     * @param string $methodName
+     * @param mixed $return
+     * @return \Mockery\Expectation
+     */
+    public function stub($method, $return = null)
+    {
+        $args = func_get_args();
+        $stub = $this->shouldReceive($args[0]);
+
+        if ($return instanceof \Closure) {
+            $stub->andReturnUsing($return);
+        } else {
+            $stub->andReturn($return);
+        }
+
+        return $stub;
+    }
+
     /**
      * Set expected method calls
      *
