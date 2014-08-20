@@ -24,6 +24,9 @@ use Mockery\Generator\MockConfigurationBuilder;
 class ContainerTest extends PHPUnit_Framework_TestCase
 {
 
+    /** @var  Mockery\Container */
+    private $container;
+
     public function setup ()
     {
         $this->container = new \Mockery\Container(\Mockery::getDefaultGenerator(), new \Mockery\Loader\EvalLoader());
@@ -40,6 +43,29 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $m->shouldReceive('foo')->andReturn('bar');
         $this->assertEquals('bar', $m->foo());
     }
+
+    public function testGetKeyOfDemeterMockShouldReturnKeyWhenMatchingMock()
+    {
+        $m = $this->container->mock();
+        $m->shouldReceive('foo->bar');
+        $this->assertRegExp(
+            '/Mockery_(\d+)__demeter_foo/',
+            $this->container->getKeyOfDemeterMockFor('foo')
+        );
+    }
+    public function testGetKeyOfDemeterMockShouldReturnNullWhenNoMatchingMock()
+    {
+        $method = 'unknownMethod';
+        $this->assertNull($this->container->getKeyOfDemeterMockFor($method));
+
+        $m = $this->container->mock();
+        $m->shouldReceive('method');
+        $this->assertNull($this->container->getKeyOfDemeterMockFor($method));
+
+        $m->shouldReceive('foo->bar');
+        $this->assertNull($this->container->getKeyOfDemeterMockFor($method));
+    }
+
 
     public function testNamedMocksAddNameToExceptions()
     {
@@ -258,6 +284,15 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $this->assertEquals('baz', $m->foo());
         $this->assertTrue($m instanceof SplFileInfo);
 
+    }
+
+    public function testSplClassWithFinalMethodsCanBeMockedMultipleTimes()
+    {
+        $this->container->mock('SplFileInfo');
+        $m = $this->container->mock('SplFileInfo');
+        $m->shouldReceive('foo')->andReturn('baz');
+        $this->assertEquals('baz', $m->foo());
+        $this->assertTrue($m instanceof SplFileInfo);
     }
 
     public function testClassesWithFinalMethodsCanBeProxyPartialMocks()
@@ -1085,8 +1120,8 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $mock->foo(null, 123);
     }
 
-    /** 
-     * @test 
+    /**
+     * @test
      * @group issue/294
      * @expectedException Mockery\Exception\RuntimeException
      * @expectedExceptionMessage Could not load mock DateTime, class already exists
@@ -1096,6 +1131,128 @@ class ContainerTest extends PHPUnit_Framework_TestCase
         $builder = new MockConfigurationBuilder();
         $builder->setName("DateTime");
         $mock = $this->container->mock($builder);
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(resource(...))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithResource()
+    {
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo(fopen('php://memory', 'r'));
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(array('myself'=>'array(...)',))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithCircularArray()
+    {
+        $testArray = array();
+        $testArray['myself'] =& $testArray;
+
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo($testArray);
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(array('a_scalar'=>2,'an_array'=>'array(...)',))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithNestedArray()
+    {
+        $testArray = array();
+        $testArray['a_scalar'] = 2;
+        $testArray['an_array'] = array(1, 2, 3);
+
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo($testArray);
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(array('a_scalar'=>2,'an_object'=>'object(stdClass)',))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithNestedObject()
+    {
+        $testArray = array();
+        $testArray['a_scalar'] = 2;
+        $testArray['an_object'] = new \stdClass();
+
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo($testArray);
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(array('a_scalar'=>2,'a_closure'=>'object(Closure)',))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithNestedClosure()
+    {
+        $testArray = array();
+        $testArray['a_scalar'] = 2;
+        $testArray['a_closure'] = function () {
+        };
+
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo($testArray);
+    }
+
+    /**
+     * @expectedException Mockery\Exception\NoMatchingExpectationException
+     * @expectedExceptionMessage MyTestClass::foo(array('a_scalar'=>2,'a_resource'=>'resource(...)',))
+     */
+    public function testHandlesMethodWithArgumentExpectationWhenCalledWithNestedResource()
+    {
+        $testArray = array();
+        $testArray['a_scalar'] = 2;
+        $testArray['a_resource'] = fopen('php://memory', 'r');
+
+        $mock = $this->container->mock('MyTestClass');
+        $mock->shouldReceive('foo')->with(array('yourself' => 21));
+
+        $mock->foo($testArray);
+    }
+
+    /**
+     * @test
+     * @group issue/339
+     */
+    public function canMockClassesThatDescendFromInternalClasses()
+    {
+        $mock = $this->container->mock("MockeryTest_ClassThatDescendsFromInternalClass");
+        $this->assertInstanceOf("DateTime", $mock);
+    }
+
+    /** 
+     * @test 
+     * @group issue/339
+     */
+    public function canMockClassesThatImplementSerializable()
+    {
+        $mock = $this->container->mock("MockeryTest_ClassThatImplementsSerializable");
+        $this->assertInstanceOf("Serializable", $mock);
+    }
+
+    /**
+     * @test
+     * @group issue/346
+     */
+    public function canMockInternalClassesThatImplementSerializable()
+    {
+        $mock = $this->container->mock("ArrayObject");
+        $this->assertInstanceOf("Serializable", $mock);
     }
 }
 
@@ -1366,4 +1523,11 @@ interface MockeryTest_InterfaceThatExtendsIterator extends \Iterator {
 
 interface MockeryTest_InterfaceThatExtendsIteratorAggregate extends \IteratorAggregate {
     public function foo();
+}
+
+class MockeryTest_ClassThatDescendsFromInternalClass extends \DateTime {}
+
+class MockeryTest_ClassThatImplementsSerializable implements \Serializable {
+    public function serialize() {}
+    public function unserialize($serialized) {}
 }
